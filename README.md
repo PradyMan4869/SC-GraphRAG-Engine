@@ -174,6 +174,7 @@ python scripts/index_documents.py --years 2023 2024 --workers 4
 ```
 
 > **Note on `--workers`:** The default is 3 concurrent async insert tasks. Each task calls both the embedding model and the LLM. Ensure that the context length is set accordinly to make sure that the chunk's tokens do not exceed the context length/concurrent async insert tasks.
+> > **Note on model selection:** Qwen3-8B indexed only 160/782 documents in 30 hours before being replaced with Qwen2.5-1.5B-Instruct, which processed the remaining 622 documents in ~9 hours (~14× throughput improvement).
 
 ---
 
@@ -242,7 +243,7 @@ pytest tests/ -v
 
 # 📊 Evaluation Framework & Performance Metrics
 
-This project uses a **multi-stage evaluation pipeline** to measure the **Graph Lift**—the quantifiable advantage of using a Knowledge Graph over traditional *Naive Vector RAG*—across **782Supreme Court judgments**.
+This project uses a **multi-stage evaluation pipeline** to measure the **Graph Lift**—the quantifiable advantage of using a Knowledge Graph over traditional *Naive Vector RAG*—across **782 Supreme Court judgments**.
 
 ---
 
@@ -253,7 +254,7 @@ These metrics measure how effectively the system isolates **relevant legal conce
 | Metric | Purpose | GraphRAG (Hybrid) | Naive RAG |
 |------|--------|------------------|-----------|
 | **Context SNR (dB)** | Signal-to-Noise Ratio of relevant legal entities | **8.4 dB** | 2.1 dB |
-| **Retrieval Precision** | % of retrieved chunks that are semantically vital | **85.0%** | 15.0% |
+| **Context Precision** | % of retrieved chunks that are semantically vital | **49.5%** | 15.0% |
 | **Entity Recall** | Ability to find all necessary legal references | **98.5%** | 21%* |
 
 > **Note on SNR:**  
@@ -279,8 +280,8 @@ Standard NLP metrics comparing generated answers with **human-curated ground tru
 
 | Metric | Description | Value |
 |--------|------------|-------|
-| **ROUGE-L** | Longest Common Subsequence (LCS) overlap | ~0.2703 |
-| **BLEU Score** | n-gram precision (1–4 grams) | ~0.0397 |
+| **ROUGE-L** | Longest Common Subsequence (LCS) overlap | 0.19 |
+| **BLEU Score** | n-gram precision (1–4 grams) | 0.05 |
 
 > **Analyst Note:**  
 > ROUGE and BLEU scores are naturally lower in legal domains due to **high linguistic variability**.  
