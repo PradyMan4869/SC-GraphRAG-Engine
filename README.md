@@ -247,4 +247,3 @@ pytest tests/ -v
 ## License
 
 - **Data** (`data/`): [CC-BY-4.0](https://creativecommons.org/licenses/by/4.0/) — Indian Supreme Court Judgments dataset via AWS Open Data Registry.
-- **Code** (everything else): [MIT](LICENSE).
