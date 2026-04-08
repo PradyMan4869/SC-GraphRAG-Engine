@@ -1,0 +1,39 @@
+# Virtual environment
+venv/
+.venv/
+env/
+
+# Data (too large for GitHub — download via scripts/download_data.bat)
+data/
+storage/
+
+# Environment secrets
+.env
+.env.example
+
+# Plan files (internal, not for public repo)
+Plan/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+dist/
+build/
+
+# Jupyter checkpoints
+.ipynb_checkpoints/
+
+# Model files (stored locally, not committed)
+*.gguf
+*.bin
+*.safetensors
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/

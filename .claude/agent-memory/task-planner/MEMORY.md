@@ -1,0 +1,2 @@
+- [Project Overview](project_overview.md) -- GraphRAG over Indian SC judgments, personal/resume project, fully local stack
+- [User Profile](user_profile.md) -- Pradyumna, RTX 5050 laptop, LM Studio models, wants detailed plans

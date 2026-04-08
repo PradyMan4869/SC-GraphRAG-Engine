@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(venv/Scripts/python -c ':*)",
+      "Bash(python:*)",
+      "Bash(venv/Scripts/python scripts/index_documents.py --years 2024 --sample 2 --workers 1)",
+      "Bash(venv/Scripts/python scripts/index_documents.py --years 2024 --sample 1 --workers 1)",
+      "Bash(venv/Scripts/python scripts/index_documents.py --years 2024 --sample 10 --workers 1)",
+      "Bash(venv/Scripts/python src/graph/explorer.py)",
+      "Bash(venv/Scripts/python scripts/index_documents.py --years 2024 --workers 3)",
+      "Bash(venv/Scripts/python scripts/index_documents.py --years 2024 --sample 4)",
+      "Bash(pkill -f \"index_documents.py\")",
+      "Bash(ls \"D:/Projects/GraphRag-Supreme Court/storage/\"*.tmp)"
+    ]
+  },
+  "prefersReducedMotion": true,
+  "spinnerTipsEnabled": false
+}

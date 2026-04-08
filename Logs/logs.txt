@@ -1,0 +1,363 @@
+rror.__init__() missing 2 required keyword-only arguments: 'response' and 'body')   
+
+ERROR: Failed to extract document 11/13: unknown_source
+ERROR: LLM func: Error in decorated function for task 1596067557312_183827.0033079: Error code: 400 - {'error': 'Context size has been exceeded.'}
+ERROR: LLM func: Error in decorated function for task 1596067556608_183826.9994513: Error code: 400 - {'error': 'Context size has been exceeded.'}
+ERROR: LLM func: Error in decorated function for task 1596067561184_183827.0007245: Error code: 400 - {'error': 'Context size has been exceeded.'}
+INFO: Extracting stage 12/13: unknown_source
+INFO: Processing d-id: 2024_12_28_67_EN
+22:19:17  INFO      LLM Send: 2 msgs, ~8717 chars. (Concurrency unk)
+22:19:17  INFO      LLM Send: 2 msgs, ~8814 chars. (Concurrency unk)
+22:19:17  INFO      LLM Send: 2 msgs, ~8922 chars. (Concurrency unk)
+22:19:17  INFO      LLM Send: 2 msgs, ~9049 chars. (Concurrency unk)
+ERROR: LLM func: Error in decorated function for task 1596067559072_183829.4719356: Error code: 400 - {'error': 'Context size has been exceeded.'}
+ERROR: Failed to extract entities and relationships: C[1/58]: chunk-2511fb2d430bb3cb0b9335817a882e7e: BadRequestError: Error code: 400 - {'error': 'Context size has been exceeded.'} (Original exception could not be reconstructed: APIStatusError.__init__() missing 2 required keyword-only arguments: 'response' and 'body')
+ERROR: LLM func: Error in decorated function for task 1596067556080_183829.4689022: Error code: 400 - {'error': 'Context size has been exceeded.'}
+ERROR: Traceback (most recent call last):
+  File "D:\Projects\GraphRag-Supreme Court\venv\Lib\site-packages\lightrag\operate.py", line 3110, in _process_with_semaphore
+    result = await _process_single_content(chunk)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\GraphRag-Supreme Court\venv\Lib\site-packages\lightrag\operate.py", line 2965, in _process_single_content
+    final_result, timestamp = await use_llm_func_with_cache(
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    )
+    ^
+  File "D:\Projects\GraphRag-Supreme Court\venv\Lib\site-packages\lightrag\utils.py", line 2049, in use_llm_func_with_cache
+    res: str = await use_llm_func(
+               ^^^^^^^^^^^^^^^^^^^
+        safe_user_prompt, system_prompt=safe_system_prompt, **kwargs
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Projects\GraphRag-Supreme Court\venv\Lib\site-packages\lightrag\utils.py", line 1026, in wait_func
+    return await future
+           ^^^^^^^^^^^^
+  File "D:\Projects\GraphRag-Supreme Court\venv\Lib\site-packages\lightrag\utils.py", line 730, in worker
+    result = await asyncio.wait_for(
+             ^^^^^^^^^^^^^^^^^^^^^^^
+        func(*args, **kwargs), timeout=max_execution_timeout
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Pradyumna\AppData\Local\Programs\Python\Python313\Lib\asyncio\tasks.py", line 507, in wait_for
+    return await fut
+           ^^^^^^^^^
+  File "D:\Projects\GraphRag-Supreme Court\src\rag\llm_backend.py", line 57, in llm_model_func 
+    response = await client.chat.completions.create(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<4 lines>...
+    )
+    ^
+  File "D:\Projects\GraphRag-Supreme Court\venv\Lib\site-packages\openai\resources\chat\completions\completions.py", line 2714, in create
+    return await self._post(
+           ^^^^^^^^^^^^^^^^^
+    ...<49 lines>...
+    )
+    ^
+  File "D:\Projects\GraphRag-Supreme Court\venv\Lib\site-packages\openai\_base_client.py", line 1884, in post
+    return await self.request(cast_to, opts, stream=stream, stream_cls=stream_cls)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\GraphRag-Supreme Court\venv\Lib\site-packages\openai\_base_client.py", line 1669, in request
+    raise self._make_status_error_from_response(err.response) from None
+openai.BadRequestError: Error code: 400 - {'error': 'Context size has been exceeded.'}
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\Projects\GraphRag-Supreme Court\venv\Lib\site-packages\lightrag\operate.py", line 3118, in _process_with_semaphore
+    raise prefixed_exception from e
+RuntimeError: chunk-2511fb2d430bb3cb0b9335817a882e7e: BadRequestError: Error code: 400 - {'error': 'Context size has been exceeded.'} (Original exception could not be reconstructed: APIStatusError.__init__() missing 2 required keyword-only arguments: 'response' and 'body')
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\Projects\GraphRag-Supreme Court\venv\Lib\site-packages\lightrag\lightrag.py", line 2052, in process_document
+    chunk_results = await entity_relation_task
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\GraphRag-Supreme Court\venv\Lib\site-packages\lightrag\lightrag.py", line 2341, in _process_extract_entities
+    raise e
+  File "D:\Projects\GraphRag-Supreme Court\venv\Lib\site-packages\lightrag\lightrag.py", line 2326, in _process_extract_entities
+    chunk_results = await extract_entities(
+                    ^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "D:\Projects\GraphRag-Supreme Court\venv\Lib\site-packages\lightrag\operate.py", line 3160, in extract_entities
+    raise prefixed_exception from first_exception
+RuntimeError: C[1/58]: chunk-2511fb2d430bb3cb0b9335817a882e7e: BadRequestError: Error code: 400 - {'error': 'Context size has been exceeded.'} (Original exception could not be reconstructed: APIStatusError.__init__() missing 2 required keyword-only arguments: 'response' and 'body')   
+
+ERROR: Failed to extract document 12/13: unknown_source
+ERROR: LLM func: Error in decorated function for task 1596067558896_183829.4675064: Error code: 400 - {'error': 'Context size has been exceeded.'}
+ERROR: LLM func: Error in decorated function for task 1596067557136_183829.4702396: Error code: 400 - {'error': 'Context size has been exceeded.'}
+INFO: Extracting stage 13/13: unknown_source
+INFO: Processing d-id: 2024_12_335_357_EN
+22:19:20  INFO      LLM Send: 2 msgs, ~8684 chars. (Concurrency unk)
+22:19:20  INFO      LLM Send: 2 msgs, ~8906 chars. (Concurrency unk)
+22:19:20  INFO      LLM Send: 2 msgs, ~8614 chars. (Concurrency unk)
+22:19:20  INFO      LLM Send: 2 msgs, ~8675 chars. (Concurrency unk)
+ERROR: LLM func: Error in decorated function for task 1596067656848_183831.8576759: Error code: 400 - {'error': 'Context size has been exceeded.'}
+ERROR: Failed to extract entities and relationships: C[1/32]: chunk-c0ce1ed570e6dde4d8e9faa0400773d4: BadRequestError: Error code: 400 - {'error': 'Context size has been exceeded.'} (Original exception could not be reconstructed: APIStatusError.__init__() missing 2 required keyword-only arguments: 'response' and 'body')
+ERROR: LLM func: Error in decorated function for task 1596067656496_183831.8545909: Error code: 400 - {'error': 'Context size has been exceeded.'}
+ERROR: Traceback (most recent call last):
+  File "D:\Projects\GraphRag-Supreme Court\venv\Lib\site-packages\lightrag\operate.py", line 3110, in _process_with_semaphore
+    result = await _process_single_content(chunk)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\GraphRag-Supreme Court\venv\Lib\site-packages\lightrag\operate.py", line 2965, in _process_single_content
+    final_result, timestamp = await use_llm_func_with_cache(
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    )
+    ^
+  File "D:\Projects\GraphRag-Supreme Court\venv\Lib\site-packages\lightrag\utils.py", line 2049, in use_llm_func_with_cache
+    res: str = await use_llm_func(
+               ^^^^^^^^^^^^^^^^^^^
+        safe_user_prompt, system_prompt=safe_system_prompt, **kwargs
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Projects\GraphRag-Supreme Court\venv\Lib\site-packages\lightrag\utils.py", line 1026, in wait_func
+    return await future
+           ^^^^^^^^^^^^
+  File "D:\Projects\GraphRag-Supreme Court\venv\Lib\site-packages\lightrag\utils.py", line 730, in worker
+    result = await asyncio.wait_for(
+             ^^^^^^^^^^^^^^^^^^^^^^^
+        func(*args, **kwargs), timeout=max_execution_timeout
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Pradyumna\AppData\Local\Programs\Python\Python313\Lib\asyncio\tasks.py", line 507, in wait_for
+    return await fut
+           ^^^^^^^^^
+  File "D:\Projects\GraphRag-Supreme Court\src\rag\llm_backend.py", line 57, in llm_model_func 
+    response = await client.chat.completions.create(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<4 lines>...
+    )
+    ^
+  File "D:\Projects\GraphRag-Supreme Court\venv\Lib\site-packages\openai\resources\chat\completions\completions.py", line 2714, in create
+    return await self._post(
+           ^^^^^^^^^^^^^^^^^
+    ...<49 lines>...
+    )
+    ^
+  File "D:\Projects\GraphRag-Supreme Court\venv\Lib\site-packages\openai\_base_client.py", line 1884, in post
+    return await self.request(cast_to, opts, stream=stream, stream_cls=stream_cls)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\GraphRag-Supreme Court\venv\Lib\site-packages\openai\_base_client.py", line 1669, in request
+    raise self._make_status_error_from_response(err.response) from None
+openai.BadRequestError: Error code: 400 - {'error': 'Context size has been exceeded.'}
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\Projects\GraphRag-Supreme Court\venv\Lib\site-packages\lightrag\operate.py", line 3118, in _process_with_semaphore
+    raise prefixed_exception from e
+RuntimeError: chunk-c0ce1ed570e6dde4d8e9faa0400773d4: BadRequestError: Error code: 400 - {'error': 'Context size has been exceeded.'} (Original exception could not be reconstructed: APIStatusError.__init__() missing 2 required keyword-only arguments: 'response' and 'body')
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\Projects\GraphRag-Supreme Court\venv\Lib\site-packages\lightrag\lightrag.py", line 2052, in process_document
+    chunk_results = await entity_relation_task
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\GraphRag-Supreme Court\venv\Lib\site-packages\lightrag\lightrag.py", line 2341, in _process_extract_entities
+    raise e
+  File "D:\Projects\GraphRag-Supreme Court\venv\Lib\site-packages\lightrag\lightrag.py", line 2326, in _process_extract_entities
+    chunk_results = await extract_entities(
+                    ^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "D:\Projects\GraphRag-Supreme Court\venv\Lib\site-packages\lightrag\operate.py", line 3160, in extract_entities
+    raise prefixed_exception from first_exception
+RuntimeError: C[1/32]: chunk-c0ce1ed570e6dde4d8e9faa0400773d4: BadRequestError: Error code: 400 - {'error': 'Context size has been exceeded.'} (Original exception could not be reconstructed: APIStatusError.__init__() missing 2 required keyword-only arguments: 'response' and 'body')   
+
+ERROR: Failed to extract document 13/13: unknown_source
+ERROR: LLM func: Error in decorated function for task 1596067656672_183831.8561007: Error code: 400 - {'error': 'Context size has been exceeded.'}
+ERROR: LLM func: Error in decorated function for task 1596067656320_183831.853287: Error code: 400 - {'error': 'Context size has been exceeded.'}
+INFO: Enqueued document processing pipeline stopped
+Indexing:   0%|                                            | 1/588 [00:30<5:03:06, 30.98s/doc]INFO: Preserving 8 failed document entries for manual review
+INFO: Reset 13 documents from PROCESSING/FAILED to PENDING status
+INFO: Processing 14 document(s)
+INFO: Extracting stage 1/14: unknown_source
+INFO: Processing d-id: 2024_12_1997_2042_EN
+22:19:22  INFO      LLM Send: 2 msgs, ~8688 chars. (Concurrency unk)
+22:19:22  INFO      LLM Send: 2 msgs, ~8809 chars. (Concurrency unk)
+22:19:22  INFO      LLM Send: 2 msgs, ~8808 chars. (Concurrency unk)
+22:19:22  INFO      LLM Send: 2 msgs, ~9012 chars. (Concurrency unk)
+ERROR: LLM func: Error in decorated function for task 1596067560304_183834.4964907: Error code: 400 - {'error': 'Context size has been exceeded.'}
+ERROR: LLM func: Error in decorated function for task 1596067558192_183834.497629: Error code: 400 - {'error': 'Context size has been exceeded.'}
+ERROR: Failed to extract entities and relationships: C[1/68]: chunk-e8e5b4dc092158ab98d95d4a5a904083: BadRequestError: Error code: 400 - {'error': 'Context size has been exceeded.'} (Original exception could not be reconstructed: APIStatusError.__init__() missing 2 required keyword-only arguments: 'response' and 'body')
+ERROR: LLM func: Error in decorated function for task 1596067556256_183834.495211: Error code: 400 - {'error': 'Context size has been exceeded.'}
+ERROR: LLM func: Error in decorated function for task 1596067556080_183834.4987921: Error code: 400 - {'error': 'Context size has been exceeded.'}
+ERROR: Traceback (most recent call last):
+  File "D:\Projects\GraphRag-Supreme Court\venv\Lib\site-packages\lightrag\operate.py", line 3110, in _process_with_semaphore
+    result = await _process_single_content(chunk)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\GraphRag-Supreme Court\venv\Lib\site-packages\lightrag\operate.py", line 2965, in _process_single_content
+    final_result, timestamp = await use_llm_func_with_cache(
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    )
+    ^
+  File "D:\Projects\GraphRag-Supreme Court\venv\Lib\site-packages\lightrag\utils.py", line 2049, in use_llm_func_with_cache
+    res: str = await use_llm_func(
+               ^^^^^^^^^^^^^^^^^^^
+        safe_user_prompt, system_prompt=safe_system_prompt, **kwargs
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Projects\GraphRag-Supreme Court\venv\Lib\site-packages\lightrag\utils.py", line 1026, in wait_func
+    return await future
+           ^^^^^^^^^^^^
+  File "D:\Projects\GraphRag-Supreme Court\venv\Lib\site-packages\lightrag\utils.py", line 730, in worker
+    result = await asyncio.wait_for(
+             ^^^^^^^^^^^^^^^^^^^^^^^
+        func(*args, **kwargs), timeout=max_execution_timeout
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Pradyumna\AppData\Local\Programs\Python\Python313\Lib\asyncio\tasks.py", line 507, in wait_for
+    return await fut
+           ^^^^^^^^^
+  File "D:\Projects\GraphRag-Supreme Court\src\rag\llm_backend.py", line 57, in llm_model_func 
+    response = await client.chat.completions.create(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<4 lines>...
+    )
+    ^
+  File "D:\Projects\GraphRag-Supreme Court\venv\Lib\site-packages\openai\resources\chat\completions\completions.py", line 2714, in create
+    return await self._post(
+           ^^^^^^^^^^^^^^^^^
+    ...<49 lines>...
+    )
+    ^
+  File "D:\Projects\GraphRag-Supreme Court\venv\Lib\site-packages\openai\_base_client.py", line 1884, in post
+    return await self.request(cast_to, opts, stream=stream, stream_cls=stream_cls)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\GraphRag-Supreme Court\venv\Lib\site-packages\openai\_base_client.py", line 1669, in request
+    raise self._make_status_error_from_response(err.response) from None
+openai.BadRequestError: Error code: 400 - {'error': 'Context size has been exceeded.'}
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\Projects\GraphRag-Supreme Court\venv\Lib\site-packages\lightrag\operate.py", line 3118, in _process_with_semaphore
+    raise prefixed_exception from e
+RuntimeError: chunk-e8e5b4dc092158ab98d95d4a5a904083: BadRequestError: Error code: 400 - {'error': 'Context size has been exceeded.'} (Original exception could not be reconstructed: APIStatusError.__init__() missing 2 required keyword-only arguments: 'response' and 'body')
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\Projects\GraphRag-Supreme Court\venv\Lib\site-packages\lightrag\lightrag.py", line 2052, in process_document
+    chunk_results = await entity_relation_task
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\GraphRag-Supreme Court\venv\Lib\site-packages\lightrag\lightrag.py", line 2341, in _process_extract_entities
+    raise e
+  File "D:\Projects\GraphRag-Supreme Court\venv\Lib\site-packages\lightrag\lightrag.py", line 2326, in _process_extract_entities
+    chunk_results = await extract_entities(
+                    ^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "D:\Projects\GraphRag-Supreme Court\venv\Lib\site-packages\lightrag\operate.py", line 3160, in extract_entities
+    raise prefixed_exception from first_exception
+RuntimeError: C[1/68]: chunk-e8e5b4dc092158ab98d95d4a5a904083: BadRequestError: Error code: 400 - {'error': 'Context size has been exceeded.'} (Original exception could not be reconstructed: APIStatusError.__init__() missing 2 required keyword-only arguments: 'response' and 'body')   
+
+ERROR: Failed to extract document 1/14: unknown_source
+INFO: Extracting stage 2/14: unknown_source
+INFO: Processing d-id: 2024_12_1_27_EN
+22:19:25  INFO      LLM Send: 2 msgs, ~8690 chars. (Concurrency unk)
+22:19:25  INFO      LLM Send: 2 msgs, ~8752 chars. (Concurrency unk)
+22:19:25  INFO      LLM Send: 2 msgs, ~8285 chars. (Concurrency unk)
+22:19:25  INFO      LLM Send: 2 msgs, ~8164 chars. (Concurrency unk)
+ERROR: LLM func: Error in decorated function for task 1596067558544_183837.0753956: Error code: 400 - {'error': 'Context size has been exceeded.'}
+ERROR: Failed to extract entities and relationships: C[1/40]: chunk-c19917e01eaac86c81e5d8c3e0a371f1: BadRequestError: Error code: 400 - {'error': 'Context size has been exceeded.'} (Original exception could not be reconstructed: APIStatusError.__init__() missing 2 required keyword-only arguments: 'response' and 'body')
+ERROR: Traceback (most recent call last):
+  File "D:\Projects\GraphRag-Supreme Court\venv\Lib\site-packages\lightrag\operate.py", line 3110, in _process_with_semaphore
+    result = await _process_single_content(chunk)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\GraphRag-Supreme Court\venv\Lib\site-packages\lightrag\operate.py", line 2965, in _process_single_content
+    final_result, timestamp = await use_llm_func_with_cache(
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    )
+    ^
+  File "D:\Projects\GraphRag-Supreme Court\venv\Lib\site-packages\lightrag\utils.py", line 2049, in use_llm_func_with_cache
+    res: str = await use_llm_func(
+               ^^^^^^^^^^^^^^^^^^^
+        safe_user_prompt, system_prompt=safe_system_prompt, **kwargs
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\Projects\GraphRag-Supreme Court\venv\Lib\site-packages\lightrag\utils.py", line 1026, in wait_func
+    return await future
+           ^^^^^^^^^^^^
+  File "D:\Projects\GraphRag-Supreme Court\venv\Lib\site-packages\lightrag\utils.py", line 730, in worker
+    result = await asyncio.wait_for(
+             ^^^^^^^^^^^^^^^^^^^^^^^
+        func(*args, **kwargs), timeout=max_execution_timeout
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\Pradyumna\AppData\Local\Programs\Python\Python313\Lib\asyncio\tasks.py", line 507, in wait_for
+    return await fut
+           ^^^^^^^^^
+  File "D:\Projects\GraphRag-Supreme Court\src\rag\llm_backend.py", line 57, in llm_model_func 
+    response = await client.chat.completions.create(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<4 lines>...
+  File "D:\Projects\GraphRag-Supreme Court\venv\Lib\site-packages\openai\_base_client.py", line 1669, in request
+    raise self._make_status_error_from_response(err.response) from None
+openai.BadRequestError: Error code: 400 - {'error': 'Context size has been exceeded.'}
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\Projects\GraphRag-Supreme Court\venv\Lib\site-packages\lightrag\operate.py", line 3118, in _process_with_semaphore
+    raise prefixed_exception from e
+RuntimeError: chunk-c19917e01eaac86c81e5d8c3e0a371f1: BadRequestError: Error code: 400 - {'error': 'Context size has been exceeded.'} (Original exception could not be reconstructed: APIStatusError.__init__() missing 2 required keyword-only arguments: 'response' and 'body')
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\Projects\GraphRag-Supreme Court\venv\Lib\site-packages\lightrag\lightrag.py", line 2052, in process_document
+    chunk_results = await entity_relation_task
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\GraphRag-Supreme Court\venv\Lib\site-packages\lightrag\lightrag.py", line 2341, in _process_extract_entities
+    raise e
+  File "D:\Projects\GraphRag-Supreme Court\venv\Lib\site-packages\lightrag\lightrag.py", line 2326, in _process_extract_entities
+    chunk_results = await extract_entities(
+                    ^^^^^^^^^^^^^^^^^^^^^^^
+    ...<6 lines>...
+    )
+    ^
+  File "D:\Projects\GraphRag-Supreme Court\venv\Lib\site-packages\lightrag\operate.py", line 3160, in extract_entities
+    raise prefixed_exception from first_exception
+RuntimeError: C[1/40]: chunk-c19917e01eaac86c81e5d8c3e0a371f1: BadRequestError: Error code: 400 - {'error': 'Context size has been exceeded.'} (Original exception could not be reconstructed: APIStatusError.__init__() missing 2 required keyword-only arguments: 'response' and 'body')
+
+ERROR: Failed to extract document 2/14: unknown_source
+ERROR: LLM func: Error in decorated function for task 1596067560480_183837.0787349: Error code: 400 - {'error': 'Context size has been exceeded.'}
+ERROR: LLM func: Error in decorated function for task 1596067559952_183837.0769486: Error code: 400 - {'error': 'Context size has been exceeded.'}
+ERROR: LLM func: Error in decorated function for task 1596067560304_183837.0803061: Error code: 400 - {'error': 'Context size has been exceeded.'}
+INFO: Extracting stage 3/14: unknown_source
+INFO: Processing d-id: 2024_12_202_334_EN
+22:19:28  INFO      LLM Send: 2 msgs, ~8530 chars. (Concurrency unk)
+22:19:28  INFO      LLM Send: 2 msgs, ~8665 chars. (Concurrency unk)
+22:19:28  INFO      LLM Send: 2 msgs, ~8777 chars. (Concurrency unk)
+22:19:28  INFO      LLM Send: 2 msgs, ~8729 chars. (Concurrency unk)
+ERROR: LLM func: Error in decorated function for task 1596067560304_183840.6031935: Error code: 400 - {'error': 'Context size has been exceeded.'}
+ERROR: Failed to extract entities and relationships: C[1/185]: chunk-5ea69eec7565b8addd28d6cf56ac4bb7: BadRequestError: Error code: 400 - {'error': 'Context size has been exceeded.'} (Original exception could not be reconstructed: APIStatusError.__init__() missing 2 required keyword-only arguments: 'response' and 'body')
+ERROR: Traceback (most recent call last):
+  File "D:\Projects\GraphRag-Supreme Court\venv\Lib\site-packages\lightrag\operate.py", line 3110, in _process_with_semaphore
+    result = await _process_single_content(chunk)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Projects\GraphRag-Supreme Court\venv\Lib\site-packages\lightrag\operate.py", line 2965, in _process_single_content
+    final_result, timestamp = await use_llm_func_with_cache(
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    )
+    ^
+  File "D:\Projects\GraphRag-Supreme Court\venv\Lib\site-packages\lightrag\utils.py", line 2049, in use_llm_func_with_cache
+    res: str = await use_llm_func(
