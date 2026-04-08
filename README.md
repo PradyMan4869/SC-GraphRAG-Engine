@@ -1,6 +1,6 @@
 # GraphRAG — Indian Supreme Court Judgments
 
-A fully local GraphRAG pipeline over ~35,000 Indian Supreme Court judgments (1950–2025), built as a portfolio project demonstrating graph-augmented retrieval for legal research.
+A fully local GraphRAG pipeline on Indian Supreme Court judgments 2024, built as a portfolio project demonstrating graph-augmented retrieval for legal research.
 
 ---
 
@@ -11,9 +11,9 @@ A fully local GraphRAG pipeline over ~35,000 Indian Supreme Court judgments (195
 
 ## What It Does
 
-- **Graph-augmented retrieval over 35,000 judgments.** Plain RAG retrieves text chunks by vector similarity. GraphRAG additionally extracts named entities (cases, articles, parties, doctrines) and their relationships into a knowledge graph, enabling multi-hop reasoning across documents that vector search alone cannot traverse.
+- **Graph-augmented retrieval over 782 judgments.** Plain RAG retrieves text chunks by vector similarity. GraphRAG additionally extracts named entities (cases, articles, parties, doctrines) and their relationships into a knowledge graph, enabling multi-hop reasoning across documents that vector search alone cannot traverse.
 - **Four query modes.** `naive` (dense vector only), `local` (entity-centric graph neighbourhood), `global` (relation-centric graph paths), and `hybrid` (local + global combined — recommended for legal research).
-- **Fully local inference.** The LLM (Qwen3-VL-8B) and embedding model (nomic-embed-text-v1.5) run on a local GPU via LM Studio and PyTorch CUDA. No external API calls, no data leaves the machine.
+- **Fully local inference.** The LLM (Qwen2.5-1.5B-Instruct) and embedding model (nomic-embed-text-v1.5) run on a local GPU via LM Studio and PyTorch CUDA. No external API calls, no data leaves the machine.
 - **Incremental indexing.** Already-indexed documents are tracked in `storage/indexed.json` and skipped on re-runs, so you can index year-by-year without reprocessing the entire corpus.
 
 ---
@@ -32,7 +32,7 @@ data/processed/year=YYYY/*.txt   ← plain text
     ▼
 LightRAG.insert()                ← index_documents.py
     ├── Embedding: nomic-embed-text-v1.5 (CUDA)  → nanoVectorDB
-    └── Entity extraction: Qwen3-VL-8B via LM Studio → NetworkX graph
+    └── Entity extraction: Qwen2.5-1.5B-Instruct via LM Studio → NetworkX graph
     ▼
 LightRAG.query(mode="hybrid")
     ▼
@@ -48,7 +48,7 @@ Streamlit UI  (ui/app.py)
 | Language | Python 3.13 |
 | RAG framework | LightRAG (`lightrag-hku`) 1.4.x |
 | Embedding model | `nomic-ai/nomic-embed-text-v1.5` (768-dim, 8192-token context) |
-| LLM | Qwen3-VL-8B-Instruct-Q4\_K\_M (via LM Studio) |
+| LLM | Qwen2.5-1.5B-Instruct (via LM Studio) |
 | Graph store | NetworkX 3.4+ |
 | Vector store | nanoVectorDB (managed by LightRAG) |
 | UI | Streamlit 1.43+ |
@@ -65,7 +65,7 @@ Streamlit UI  (ui/app.py)
 - Python 3.13 (from [python.org](https://www.python.org/downloads/))
 - Git
 - CUDA 12.8+ (RTX GPU required for local inference)
-- [LM Studio](https://lmstudio.ai/) with `Qwen3-VL-8B-Instruct-Q4_K_M.gguf` loaded
+- [LM Studio](https://lmstudio.ai/) with `Qwen2.5-1.5B-Instruct.gguf` loaded
 
 ### 1. Clone and create the virtual environment
 
@@ -92,7 +92,7 @@ python -c "import torch; print(torch.cuda.get_device_name(0))"
 ### 2. Start the LM Studio server
 
 1. Open LM Studio.
-2. Load model: `Qwen3-VL-8B-Instruct-Q4_K_M.gguf`.
+2. Load model: `Qwen2.5-1.5B-Instruct.gguf`.
 3. Open the **Developer** tab and click **Start Server**.
 4. Confirm the server is running at `http://localhost:1234`.
 
@@ -173,7 +173,7 @@ python scripts/index_documents.py --years 2024
 python scripts/index_documents.py --years 2023 2024 --workers 4
 ```
 
-> **Note on `--workers`:** The default is 3 concurrent async insert tasks. Each task calls both the embedding model and the LLM. Increasing workers beyond 4 risks VRAM exhaustion on an 8B model.
+> **Note on `--workers`:** The default is 3 concurrent async insert tasks. Each task calls both the embedding model and the LLM. Ensure that the context length is set accordinly to make sure that the chunk's tokens do not exceed the context length/concurrent async insert tasks.
 
 ---
 
@@ -242,7 +242,7 @@ pytest tests/ -v
 
 # 📊 Evaluation Framework & Performance Metrics
 
-This project uses a **multi-stage evaluation pipeline** to measure the **Graph Lift**—the quantifiable advantage of using a Knowledge Graph over traditional *Naive Vector RAG*—across **35,000+ Supreme Court judgments**.
+This project uses a **multi-stage evaluation pipeline** to measure the **Graph Lift**—the quantifiable advantage of using a Knowledge Graph over traditional *Naive Vector RAG*—across **782Supreme Court judgments**.
 
 ---
 
@@ -252,11 +252,9 @@ These metrics measure how effectively the system isolates **relevant legal conce
 
 | Metric | Purpose | GraphRAG (Hybrid) | Naive RAG |
 |------|--------|------------------|-----------|
-| **Context SNR (dB)** | Signal-to-Noise Ratio of relevant legal entities | **15.2 dB** | 2.1 dB |
+| **Context SNR (dB)** | Signal-to-Noise Ratio of relevant legal entities | **8.4 dB** | 2.1 dB |
 | **Retrieval Precision** | % of retrieved chunks that are semantically vital | **85.0%** | 15.0% |
-| **Entity Recall** | Ability to find all necessary legal references | **100%** | 100%* |
-| **F1 Score** | Harmonic mean of Precision and Recall | **0.9189** | 0.2609 |
-| **MRR** | Rank of first relevant answer chunk | **1.00** | 0.95 |
+| **Entity Recall** | Ability to find all necessary legal references | **98.5%** | 21%* |
 
 > **Note on SNR:**  
 > A **+13.1 dB gain** in Signal-to-Noise means the GraphRAG pipeline provides approximately **20× clearer context** to the LLM by filtering out vector search hallucinations (semantically similar but legally irrelevant text).
@@ -265,7 +263,7 @@ These metrics measure how effectively the system isolates **relevant legal conce
 
 ## 2.  Semantic Integrity (LLM-as-a-Judge)
 
-We use a **"Senior Supreme Court Judge" persona** (via *Qwen3-VL-8B*) to grade reasoning and factual accuracy on a **1–10 scale**.
+We use a **"Senior Supreme Court Judge" persona** (via *Qwen2.5-1.5B-Instruct) to grade reasoning and factual accuracy on a **1–10 scale**.
 
 | Judge Score | Criteria | Avg. Score |
 |------------|---------|------------|
@@ -296,8 +294,7 @@ Benchmarks measured on a **local RTX / CUDA setup**.
 
 - **Avg. Vector Search Latency:** ~35 ms  
 - **Avg. Graph Traversal Latency:** ~180 ms  
-- **Avg. LLM Generation Latency (Hybrid):** ~3.8 s  
-- **Indexing Speed:** ~1,200 documents/hour (GPU)  
+- **Avg. LLM Generation Latency (Hybrid):** ~3.8 s    
 - **Embedding Dimension:** 768 *(nomic-embed-text-v1.5)*  
 
 ---
