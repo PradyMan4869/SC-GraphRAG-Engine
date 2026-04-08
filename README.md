@@ -7,7 +7,7 @@ A fully local GraphRAG pipeline over ~35,000 Indian Supreme Court judgments (195
 > **Screenshot / Demo**
 > 
 > _Add a screenshot or screen recording of the Streamlit UI here._
-> `![Streamlit UI](docs/assets/demo.png)`
+> <img width="1900" height="1076" alt="image" src="https://github.com/user-attachments/assets/aa5b37f9-068c-402c-88da-065d3f2c25f5" />
 
 ---
 
