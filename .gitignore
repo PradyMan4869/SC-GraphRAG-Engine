@@ -10,6 +10,7 @@ storage/
 # Environment secrets
 .env
 .env.example
+.claude/
 
 # Plan files (internal, not for public repo)
 Plan/
@@ -37,3 +38,6 @@ Thumbs.db
 # IDE
 .vscode/
 .idea/
+
+#claude files
+.claude/
