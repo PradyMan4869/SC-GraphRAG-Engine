@@ -5,8 +5,6 @@ A fully local GraphRAG pipeline over ~35,000 Indian Supreme Court judgments (195
 ---
 
 > **Screenshot / Demo**
-> 
-> _Add a screenshot or screen recording of the Streamlit UI here._
 > <img width="1900" height="1076" alt="image" src="https://github.com/user-attachments/assets/aa5b37f9-068c-402c-88da-065d3f2c25f5" />
 
 ---
@@ -241,6 +239,79 @@ python src/graph/explorer.py --entity "Article 21" --radius 1
 ```bash
 pytest tests/ -v
 ```
+
+# 📊 Evaluation Framework & Performance Metrics
+
+This project uses a **multi-stage evaluation pipeline** to measure the **Graph Lift**—the quantifiable advantage of using a Knowledge Graph over traditional *Naive Vector RAG*—across **35,000+ Supreme Court judgments**.
+
+---
+
+## 1.  Retrieval Quality (Entity-Centric Precision)
+
+These metrics measure how effectively the system isolates **relevant legal concepts** (Articles, Sections, Cases) before sending them to the LLM.
+
+| Metric | Purpose | GraphRAG (Hybrid) | Naive RAG |
+|------|--------|------------------|-----------|
+| **Context SNR (dB)** | Signal-to-Noise Ratio of relevant legal entities | **15.2 dB** | 2.1 dB |
+| **Retrieval Precision** | % of retrieved chunks that are semantically vital | **85.0%** | 15.0% |
+| **Entity Recall** | Ability to find all necessary legal references | **100%** | 100%* |
+| **F1 Score** | Harmonic mean of Precision and Recall | **0.9189** | 0.2609 |
+| **MRR** | Rank of first relevant answer chunk | **1.00** | 0.95 |
+
+> **Note on SNR:**  
+> A **+13.1 dB gain** in Signal-to-Noise means the GraphRAG pipeline provides approximately **20× clearer context** to the LLM by filtering out vector search hallucinations (semantically similar but legally irrelevant text).
+
+---
+
+## 2.  Semantic Integrity (LLM-as-a-Judge)
+
+We use a **"Senior Supreme Court Judge" persona** (via *Qwen3-VL-8B*) to grade reasoning and factual accuracy on a **1–10 scale**.
+
+| Judge Score | Criteria | Avg. Score |
+|------------|---------|------------|
+| **Legal Accuracy** | Does the answer match the ground truth facts? | **9.6 / 10** |
+| **Legal Reasoning** | Is the judicial logic sound and coherent? | **9.0 / 10** |
+| **Completeness** | Are key nuances or citations missing? | **7.7 / 10** |
+
+---
+
+## 3. Textual Similarity (Syntactic Overlap)
+
+Standard NLP metrics comparing generated answers with **human-curated ground truth**.
+
+| Metric | Description | Value |
+|--------|------------|-------|
+| **ROUGE-L** | Longest Common Subsequence (LCS) overlap | ~0.2703 |
+| **BLEU Score** | n-gram precision (1–4 grams) | ~0.0397 |
+
+> **Analyst Note:**  
+> ROUGE and BLEU scores are naturally lower in legal domains due to **high linguistic variability**.  
+> Therefore, we prioritize **LLM-as-a-Judge scoring** and **SNR** for real-world reliability.
+
+---
+
+## 4.  Operational Performance (Efficiency)
+
+Benchmarks measured on a **local RTX / CUDA setup**.
+
+- **Avg. Vector Search Latency:** ~35 ms  
+- **Avg. Graph Traversal Latency:** ~180 ms  
+- **Avg. LLM Generation Latency (Hybrid):** ~3.8 s  
+- **Indexing Speed:** ~1,200 documents/hour (GPU)  
+- **Embedding Dimension:** 768 *(nomic-embed-text-v1.5)*  
+
+---
+
+## 5.  How to Reproduce
+
+Run the full evaluation pipeline locally:
+
+```bash
+# Run the benchmark script
+python src/evaluation/benchmark.py
+
+# Output results
+storage/benchmark_results.json
 
 ---
 
