@@ -14,7 +14,8 @@ Valid modes (LightRAG 1.4.x):
   naive   — dense vector search over raw chunks, no graph traversal
   local   — entity-centric graph context (local neighbourhood)
   global  — relation-centric graph context (global paths)
-  hybrid  — local + global graph context combined  (recommended default)
+  hybrid  — local + global graph context combined (graph only: NO chunk-level vector search)
+  mix     — graph context + chunk vector search (LightRAG default for KG+vector)
 """
 
 from __future__ import annotations
@@ -31,32 +32,67 @@ if str(PROJECT_ROOT) not in sys.path:
 
 from lightrag import QueryParam
 
+from src.rag.context import query_context
 from src.rag.indexer import get_rag
 
-VALID_MODES = {"naive", "local", "global", "hybrid"}
+VALID_MODES = {"naive", "local", "global", "hybrid", "mix"}
 
 
-async def query(question: str, mode: str = "hybrid") -> dict:
-    """Query the knowledge graph and return a structured result with context.
-
-    Returns:
-        {"answer": str, "mode": str, "question": str, "entities": list, "chunks": list}
-    """
+def _check_mode(mode: str) -> None:
     if mode not in VALID_MODES:
         raise ValueError(
             f"Invalid mode '{mode}'. Choose from: {', '.join(sorted(VALID_MODES))}"
         )
 
-    rag = await get_rag()
-    # aquery_llm returns raw_data dict containing 'entities', 'relationships', 'chunks', 'llm_response'
-    result = await rag.aquery_llm(question, param=QueryParam(mode=mode))
 
+async def query(question: str, mode: str = "hybrid") -> dict:
+    """Query the knowledge graph and return the answer plus the retrieved context.
+
+    Returns:
+        {"answer": str, "mode": str, "question": str, "entities": list, "chunks": list}
+    """
+    _check_mode(mode)
+    rag = await get_rag()
+    # The answer prompt can reach ~25k tokens (20 chunks + entities + relations). Cap it
+    # to fit the model's context window via QUERY_MAX_TOTAL_TOKENS (LightRAG default: 30000).
+    extra = {}
+    if os.getenv("QUERY_MAX_TOTAL_TOKENS"):
+        extra["max_total_tokens"] = int(os.getenv("QUERY_MAX_TOTAL_TOKENS"))
+    with query_context(answer=True):
+        result = await rag.aquery_llm(question, param=QueryParam(mode=mode, **extra))
+
+    # LightRAG nests retrieval output under "data"; "llm_response" is top-level.
+    data = result.get("data") or {}
+    answer = (result.get("llm_response") or {}).get("content") or ""
+    if not answer.strip():
+        # LightRAG swallows LLM errors (e.g. prompt larger than the model's context) and
+        # returns an empty answer; surface that instead of reporting it as a result.
+        raise RuntimeError(f"Empty answer from LLM (status={result.get('status')}); the prompt may exceed "
+                           "the model's context window - increase it in LM Studio or lower QUERY_MAX_TOTAL_TOKENS.")
     return {
-        "answer": result.get("llm_response", {}).get("content", ""),
+        "answer": answer,
         "mode": mode,
         "question": question,
-        "entities": result.get("entities", []),
-        "chunks": result.get("chunks", [])
+        "entities": data.get("entities", []),
+        "chunks": data.get("chunks", []),
+    }
+
+
+async def retrieve(question: str, mode: str = "hybrid", **params) -> dict:
+    """Retrieval only (no answer generation). Used by the evaluation harness.
+
+    `params` are extra QueryParam fields (e.g. top_k, chunk_top_k, enable_rerank) for tuning sweeps.
+    Returns {"entities": [...], "chunks": [...], "relationships": [...]}.
+    """
+    _check_mode(mode)
+    rag = await get_rag()
+    with query_context(answer=False):
+        result = await rag.aquery_data(question, param=QueryParam(mode=mode, **params))
+    data = result.get("data") or {}
+    return {
+        "entities": data.get("entities", []),
+        "relationships": data.get("relationships", []),
+        "chunks": data.get("chunks", []),
     }
 
 

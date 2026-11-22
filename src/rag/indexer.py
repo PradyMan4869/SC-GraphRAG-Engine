@@ -26,36 +26,10 @@ load_dotenv(dotenv_path=".env", override=False)
 
 from lightrag import LightRAG, QueryParam  # noqa: E402  (after load_dotenv)
 from lightrag.utils import EmbeddingFunc  # noqa: E402
-from lightrag.prompt import PROMPTS  # noqa: E402
 
 from src.rag.llm_backend import llm_model_func  # noqa: E402
 from src.rag.embedding import embedding_func, EMBEDDING_DIM  # noqa: E402
 from src.rag.reranker import rerank_handler  # noqa: E402
-
-# Ultra-lean extraction prompt for local LLMs
-PROMPTS["entity_extraction"] = """-Goal-
-Extract entities (nodes) and relationships (edges) from the text.
-
--Steps-
-1. Identify all entities. For each: name, type, description.
-2. Identify relationships between entities: source, target, relationship type, description.
-3. Output strictly in the format:
-entity<|>name<|>type<|>description
-relation<|>source<|>target<|>type<|>description
-
--Entity Types-
-["Person", "Organization", "Location", "Law", "Event", "Concept", "Date"]
-
--Real-time Document-
-{input_text}
-"""
-
-PROMPTS["entity_extraction_examples"] = [
-    """entity<|>Supreme Court Of India<|>Organization<|>Apex court of India.
-entity<|>Constitution<|>Law<|>Supreme law of India.
-relation<|>Supreme Court Of India<|>Constitution<|>interprets<|>The Court interprets the Constitution.
-<|COMPLETE|>"""
-]
 
 _rag: LightRAG | None = None
 _rag_lock: asyncio.Lock | None = None
@@ -71,6 +45,8 @@ def _get_lock() -> asyncio.Lock:
 
 def _build_rag() -> LightRAG:
     """Construct a LightRAG instance with project-specific configuration."""
+    from src.rag.extraction_prompt import apply_if_enabled
+    apply_if_enabled()  # no-op unless EXTRACT_PROMPT=lean
     storage_dir = os.getenv("STORAGE_DIR", "storage/")
 
     return LightRAG(
@@ -81,12 +57,13 @@ def _build_rag() -> LightRAG:
             max_token_size=8192,
             func=embedding_func,
         ),
-        chunk_token_size=400,
-        chunk_overlap_token_size=32,
-        entity_extract_max_gleaning=0,
-        llm_model_max_async=4,        # Stable concurrency for 8-16k context
-        embedding_func_max_async=4,   # Matches LLM for stability
-        max_parallel_insert=1,        # 1 doc at a time — no batch bottleneck
+        # Extraction knobs (env-overridable for experiments; defaults = original setup).
+        chunk_token_size=int(os.getenv("CHUNK_TOKEN_SIZE", "400")),
+        chunk_overlap_token_size=int(os.getenv("CHUNK_OVERLAP_TOKENS", "32")),
+        entity_extract_max_gleaning=int(os.getenv("EXTRACT_GLEANING", "0")),
+        llm_model_max_async=int(os.getenv("LLM_MAX_ASYNC", "4")),
+        embedding_func_max_async=4,
+        max_parallel_insert=1,        # 1 doc at a time
         rerank_model_func=rerank_handler, # Premium 2-stage retrieval
     )
 

@@ -1,0 +1,230 @@
+{
+  "graph": {
+    "available": true,
+    "nodes": 42790,
+    "edges": 10490,
+    "edges_per_node": 0.245,
+    "avg_degree": 0.49,
+    "isolated_nodes": 31718,
+    "isolated_pct": 74.1,
+    "degree_le1_pct": 93.3,
+    "connected_components": 33620,
+    "largest_component_nodes": 6254,
+    "largest_component_pct": 14.6,
+    "junk_entity_pct": 6.34,
+    "top_entity_types": [
+      [
+        "person",
+        10503
+      ],
+      [
+        "concept",
+        7015
+      ],
+      [
+        "organization",
+        5555
+      ],
+      [
+        "event",
+        4770
+      ],
+      [
+        "unknown",
+        3465
+      ],
+      [
+        "data",
+        3164
+      ],
+      [
+        "location",
+        2140
+      ],
+      [
+        "method",
+        1339
+      ]
+    ],
+    "top_hubs": [
+      [
+        "Supreme Court Of India",
+        1082
+      ],
+      [
+        "High Court",
+        371
+      ],
+      [
+        "Union of India",
+        146
+      ],
+      [
+        "Constitution",
+        119
+      ],
+      [
+        "Supreme Court Reports",
+        110
+      ],
+      [
+        "Digital Supreme Court Reports",
+        97
+      ],
+      [
+        "appellant",
+        64
+      ],
+      [
+        "organization",
+        64
+      ],
+      [
+        "Court",
+        62
+      ],
+      [
+        "Union Of India",
+        58
+      ]
+    ]
+  },
+  "index": {
+    "docs_by_status": {
+      "processed": 630,
+      "failed": 9
+    },
+    "chunks": 20035,
+    "avg_chunk_tokens": 399.2,
+    "docs_with_chunks": 630,
+    "storage_mb": {
+      "kv_store_entity_chunks.json": 12.2,
+      "kv_store_full_docs.json": 31.1,
+      "kv_store_llm_response_cache.json": 215.4,
+      "kv_store_text_chunks.json": 41.9,
+      "vdb_chunks.json": 159.2,
+      "vdb_entities.json": 277.9,
+      "vdb_relationships.json": 68.7
+    },
+    "storage_graphml_mb": 26.6
+  },
+  "extraction_ab": {
+    "8B | original cap400 ctx4k": {
+      "chunks": 40,
+      "sec_per_chunk": 15.2,
+      "entities_per_chunk": 8.12,
+      "relations_per_chunk": 0.65,
+      "empty_extractions": 0,
+      "errors": 0,
+      "junk_name_rate": 0.003,
+      "entities_not_verbatim_in_chunk": 0.074,
+      "relations_with_unextracted_endpoint": 0.0,
+      "looping_outputs": 0,
+      "chunks_with_relations": 12
+    },
+    "1.5B | original cap400 ctx4k": {
+      "chunks": 40,
+      "sec_per_chunk": 8.63,
+      "entities_per_chunk": 8.43,
+      "relations_per_chunk": 0.12,
+      "empty_extractions": 1,
+      "errors": 0,
+      "junk_name_rate": 0.05,
+      "entities_not_verbatim_in_chunk": 0.08,
+      "relations_with_unextracted_endpoint": 0.0,
+      "looping_outputs": 0,
+      "chunks_with_relations": 4
+    },
+    "8B | cap2500 ctx4k": {
+      "chunks": 20,
+      "sec_per_chunk": 17.46,
+      "entities_per_chunk": 9.4,
+      "relations_per_chunk": 2.0,
+      "empty_extractions": 0,
+      "errors": 0,
+      "junk_name_rate": 0.011,
+      "entities_not_verbatim_in_chunk": 0.096,
+      "relations_with_unextracted_endpoint": 0.0,
+      "looping_outputs": 0,
+      "chunks_with_relations": 12
+    },
+    "8B | cap2500 ctx8k": {
+      "chunks": 20,
+      "sec_per_chunk": 50.87,
+      "entities_per_chunk": 12.2,
+      "relations_per_chunk": 10.1,
+      "empty_extractions": 0,
+      "errors": 0,
+      "junk_name_rate": 0.004,
+      "entities_not_verbatim_in_chunk": 0.09,
+      "relations_with_unextracted_endpoint": 0.129,
+      "looping_outputs": 2,
+      "chunks_with_relations": 20
+    },
+    "1.5B | cap2500 ctx8k": {
+      "chunks": 20,
+      "sec_per_chunk": 16.4,
+      "entities_per_chunk": 13.55,
+      "relations_per_chunk": 3.4,
+      "empty_extractions": 0,
+      "errors": 0,
+      "junk_name_rate": 0.059,
+      "entities_not_verbatim_in_chunk": 0.122,
+      "relations_with_unextracted_endpoint": 0.162,
+      "looping_outputs": 14,
+      "chunks_with_relations": 10
+    },
+    "1.5B | ctx8k + lean prompt": {
+      "chunks": 12,
+      "sec_per_chunk": 14.26,
+      "entities_per_chunk": 4.08,
+      "relations_per_chunk": 1.75,
+      "empty_extractions": 1,
+      "errors": 0,
+      "junk_name_rate": 0.02,
+      "entities_not_verbatim_in_chunk": 0.143,
+      "relations_with_unextracted_endpoint": 0.381,
+      "looping_outputs": 8,
+      "chunks_with_relations": 6
+    },
+    "1.5B | ctx8k temp0.3": {
+      "chunks": 12,
+      "sec_per_chunk": 17.43,
+      "entities_per_chunk": 13.42,
+      "relations_per_chunk": 2.08,
+      "empty_extractions": 0,
+      "errors": 0,
+      "junk_name_rate": 0.006,
+      "entities_not_verbatim_in_chunk": 0.124,
+      "relations_with_unextracted_endpoint": 0.36,
+      "looping_outputs": 9,
+      "chunks_with_relations": 6
+    },
+    "1.5B | ctx8k temp0.2 freq0.3": {
+      "chunks": 12,
+      "sec_per_chunk": 16.09,
+      "entities_per_chunk": 10.5,
+      "relations_per_chunk": 1.67,
+      "empty_extractions": 0,
+      "errors": 0,
+      "junk_name_rate": 0.048,
+      "entities_not_verbatim_in_chunk": 0.254,
+      "relations_with_unextracted_endpoint": 0.55,
+      "looping_outputs": 8,
+      "chunks_with_relations": 5
+    },
+    "1.5B | ctx8k freq0.5": {
+      "chunks": 12,
+      "sec_per_chunk": 16.25,
+      "entities_per_chunk": 10.0,
+      "relations_per_chunk": 1.5,
+      "empty_extractions": 0,
+      "errors": 0,
+      "junk_name_rate": 0.067,
+      "entities_not_verbatim_in_chunk": 0.1,
+      "relations_with_unextracted_endpoint": 0.167,
+      "looping_outputs": 8,
+      "chunks_with_relations": 4
+    }
+  }
+}

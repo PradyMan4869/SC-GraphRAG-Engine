@@ -16,6 +16,8 @@ import os
 import numpy as np
 from openai import AsyncOpenAI
 
+from src.rag.context import QUERY_EMBEDDING
+
 EMBEDDING_DIM = 768
 LM_STUDIO_BASE_URL = os.getenv("LM_STUDIO_BASE_URL", "http://localhost:1234/v1")
 LM_STUDIO_EMBED_MODEL = os.getenv(
@@ -44,16 +46,22 @@ async def _encode(texts: list[str]) -> np.ndarray:
 
 
 async def embedding_func(texts: list[str]) -> np.ndarray:
-    """LightRAG-compatible async embedding function (document prefix)."""
+    """LightRAG-compatible async embedding function.
+
+    LightRAG uses this one callable for both indexing and querying. nomic is
+    asymmetric, so the prefix is chosen from the QUERY_EMBEDDING context flag
+    (set by src.rag.context.query_context): "search_query:" while answering a
+    user query, "search_document:" otherwise.
+    """
     if not texts:
-        return np.array([], dtype=np.float32)
-    prefixed = [f"search_document: {t}" for t in texts]
-    return await _encode(prefixed)
+        return np.zeros((0, EMBEDDING_DIM), dtype=np.float32)
+    prefix = "search_query: " if QUERY_EMBEDDING.get() else "search_document: "
+    return await _encode([f"{prefix}{t}" for t in texts])
 
 
 async def embed_for_query(texts: list[str]) -> np.ndarray:
     """Async embedding for user queries (query prefix)."""
     if not texts:
-        return np.array([], dtype=np.float32)
+        return np.zeros((0, EMBEDDING_DIM), dtype=np.float32)
     prefixed = [f"search_query: {t}" for t in texts]
     return await _encode(prefixed)

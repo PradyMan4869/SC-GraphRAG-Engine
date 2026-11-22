@@ -47,6 +47,9 @@ _SECTION_PATTERNS: list[tuple[re.Pattern[str], str]] = [
     (re.compile(r"\bHELD\b", re.IGNORECASE), "HELD"),
 ]
 
+# Matches a section marker we previously added, e.g. "[HELD] HELD"
+_MARKER_RE = re.compile(r"^\[(FACTS|ISSUES|JUDGMENT|ORDER|HELD)\]\s")
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s  %(levelname)-8s  %(message)s",
@@ -126,7 +129,8 @@ def clean_text(text: str) -> str:
         # Label section headings.
         # Only annotate when the line is short, matches a keyword, AND is
         # written in ALL CAPS (typical for Indian SC judgment headings).
-        section = _detect_section(stripped)
+        # Skip lines that already carry a marker, so re-running is idempotent.
+        section = None if _MARKER_RE.match(stripped) else _detect_section(stripped)
         if section is not None and stripped == stripped.upper() and stripped:
             # Prepend a bracketed marker so downstream code can split on sections
             stripped = f"[{section}] {stripped}"

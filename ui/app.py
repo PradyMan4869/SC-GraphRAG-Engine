@@ -50,9 +50,6 @@ st.set_page_config(
 if "conversation" not in st.session_state:
     st.session_state.conversation: list[dict[str, str]] = []
 
-if "graph_cache" not in st.session_state:
-    st.session_state.graph_cache: nx.Graph | None = None
-
 if "dark_mode" not in st.session_state:
     st.session_state.dark_mode = True
 
@@ -61,16 +58,24 @@ if "dark_mode" not in st.session_state:
 # Helpers
 # ══════════════════════════════════════════════════════════════════════════════
 
-def _load_graph_cached() -> nx.Graph | None:
-    """Load the NetworkX graph, caching it in session_state."""
-    if st.session_state.graph_cache is not None:
-        return st.session_state.graph_cache
+@st.cache_resource(show_spinner="Loading knowledge graph...")
+def _load_graph_shared() -> nx.Graph | None:
+    """One process-wide copy of the graph. (Storing it in st.session_state would
+    keep a separate ~hundreds-of-MB copy per browser session.)"""
     if not GRAPHML_PATH.exists():
         return None
     from src.graph.explorer import load_graph
-    G = load_graph(GRAPHML_PATH)
-    st.session_state.graph_cache = G
-    return G
+    return load_graph(GRAPHML_PATH)
+
+
+@st.cache_data(show_spinner=False)
+def _node_names(_G: nx.Graph, n_nodes: int) -> list[str]:
+    """Sorted node names, cached (n_nodes is only the cache key)."""
+    return sorted(map(str, _G.nodes()))
+
+
+def _load_graph_cached() -> nx.Graph | None:
+    return _load_graph_shared()
 
 
 def _indexed_doc_count() -> int | None:
@@ -83,10 +88,25 @@ def _indexed_doc_count() -> int | None:
         return None
 
 
+@st.cache_resource
+def _event_loop() -> asyncio.AbstractEventLoop:
+    """A single long-lived event loop in a daemon thread.
+
+    LightRAG creates its worker tasks/locks on the loop of the first call. Using
+    asyncio.run() per query would close that loop after each request and break
+    (or hang) every later query in the same process.
+    """
+    import threading
+    loop = asyncio.new_event_loop()
+    threading.Thread(target=loop.run_forever, daemon=True, name="rag-loop").start()
+    return loop
+
+
 def _run_query(question: str, mode: str) -> dict[str, str]:
-    """Lazily import and call the async query function."""
+    """Run the async query on the shared loop and block for the result."""
     from src.rag.query import query as rag_query
-    return asyncio.run(rag_query(question, mode=mode))
+    fut = asyncio.run_coroutine_threadsafe(rag_query(question, mode=mode), _event_loop())
+    return fut.result(timeout=600)
 
 
 def _build_pyvis_html(G: nx.Graph) -> str:
@@ -287,19 +307,24 @@ with tab_graph:
     if G_main is None:
         st.info("No graph populated. Index documents first.")
     else:
-        # Search for entity
-        all_nodes = sorted(list(G_main.nodes()))
-        entity_name = st.selectbox("Search for an entity", options=[""] + all_nodes, index=0)
+        MAX_NEIGHBOURS = 60  # hub nodes have thousands of edges; the browser can't render that
+        query_txt = st.text_input("Search for an entity", placeholder="e.g. Article 21")
+        matches = []
+        if query_txt.strip():
+            q = query_txt.strip().lower()
+            matches = [n for n in _node_names(G_main, G_main.number_of_nodes()) if q in n.lower()][:50]
+            if not matches:
+                st.warning("No entity matches that text.")
+        entity_name = st.selectbox("Matching entities", options=matches) if matches else ""
 
         if entity_name:
-            # Subgraph around entity
-            neighbors = list(G_main.neighbors(entity_name))
-            subgraph_nodes = [entity_name] + neighbors
-            G_sub = G_main.subgraph(subgraph_nodes)
-            
-            st.markdown(f"**{entity_name} Neighborhood** ({len(neighbors)} relationships)")
-            pyvis_html = _build_pyvis_html(G_sub)
-            components.html(pyvis_html, height=850)
+            all_neighbors = list(G_main.neighbors(entity_name))
+            neighbors = sorted(all_neighbors, key=G_main.degree, reverse=True)[:MAX_NEIGHBOURS]
+            G_sub = G_main.subgraph([entity_name] + neighbors)
+
+            shown = f"top {len(neighbors)} of {len(all_neighbors)}" if len(all_neighbors) > len(neighbors) else str(len(neighbors))
+            st.markdown(f"**{entity_name} Neighborhood** ({shown} relationships, ranked by connectivity)")
+            components.html(_build_pyvis_html(G_sub), height=850)
         else:
             st.info("Search for an entity above (e.g., 'Article 21', 'State of Bihar') to start.")
 
@@ -325,25 +350,29 @@ with tab_metrics:
         st.subheader("📡 Retrieval Intelligence")
         mcol1, mcol2, mcol3, mcol4 = st.columns(4)
         
-        avg_precision = df['graph_metrics'].apply(lambda x: x.get('entity_precision', 0)).mean()
-        avg_recall = df['graph_metrics'].apply(lambda x: x.get('entity_recall', 0)).mean()
-        avg_f1 = df['graph_metrics'].apply(lambda x: x.get('f1_score', 0)).mean()
-        avg_snr = df['graph_metrics'].apply(lambda x: x.get('snr_db', 0)).mean()
+        gm = df['graph_metrics']
+        avg_hit = gm.apply(lambda x: float(x.get('hit', 0))).mean()
+        avg_precision = gm.apply(lambda x: x.get('precision', 0)).mean()
+        avg_mrr = gm.apply(lambda x: x.get('mrr', 0)).mean()
+        avg_ctx = gm.apply(lambda x: x.get('context_chunks', 0)).mean()
+        n_q = df['question'].nunique()
 
-        mcol1.metric("Context Precision", f"{avg_precision*100:.1f}%")
-        mcol2.metric("Entity Recall", f"{avg_recall*100:.1f}%")
-        mcol3.metric("F1 Score", f"{avg_f1:.2f}")
-        mcol4.metric("SNR (dB)", f"{avg_snr:.1f} dB")
+        mcol1.metric("Gold-chunk hit rate", f"{avg_hit*100:.1f}%")
+        mcol2.metric("Precision (1/N)", f"{avg_precision*100:.1f}%")
+        mcol3.metric("MRR", f"{avg_mrr:.2f}")
+        mcol4.metric("Avg context chunks", f"{avg_ctx:.1f}")
+        st.caption(f"n = {n_q} LLM-generated questions, one gold chunk each; modes pooled. Per-mode results with 95% CIs: storage/retrieval_eval.json")
 
         st.write("---")
         st.subheader("⚖ Judicial Generation Quality")
         gcol1, gcol2, gcol3 = st.columns(3)
         
-        avg_accuracy = df['judge_metrics'].apply(lambda x: x.get('accuracy', 0)).mean()
+        acc_series = pd.to_numeric(df['judge_metrics'].apply(lambda x: x.get('accuracy')), errors='coerce')
+        avg_accuracy = acc_series.mean(skipna=True)  # failed judgements are excluded, not zeros
         avg_rouge = df['text_metrics'].apply(lambda x: x.get('rouge_l', 0)).mean()
         avg_bleu = df['text_metrics'].apply(lambda x: x.get('bleu', 0)).mean()
 
-        gcol1.metric("LLM Accuracy", f"{avg_accuracy*10:.1f}/100")
+        gcol1.metric("LLM judge accuracy", f"{avg_accuracy:.1f}/10", help=f"{int(acc_series.notna().sum())} of {len(acc_series)} judgements parsed; same model judges and answers.")
         gcol2.metric("ROUGE-L", f"{avg_rouge:.2f}")
         gcol3.metric("BLEU", f"{avg_bleu:.2f}")
 
@@ -355,8 +384,8 @@ with tab_metrics:
         with vcol1:
             st.markdown("**Metric Distribution (Radar)**")
             radar_df = pd.DataFrame({
-                'r': [avg_accuracy/10, avg_f1, avg_rouge, avg_bleu, (avg_snr+20)/40],
-                'theta': ['Accuracy', 'Retrieval F1', 'ROUGE-L', 'BLEU', 'SNR (Norm)']
+                'r': [avg_accuracy/10, avg_hit, avg_rouge, avg_bleu, avg_mrr],
+                'theta': ['Accuracy', 'Hit rate', 'ROUGE-L', 'BLEU', 'MRR']
             })
             fig_radar = px.line_polar(radar_df, r='r', theta='theta', line_close=True)
             fig_radar.update_traces(fill='toself')
@@ -365,7 +394,7 @@ with tab_metrics:
         with vcol2:
             st.markdown("**Latency vs. Accuracy Frontier**")
             fig_scatter = px.scatter(
-                df, x="latency_ms", y=df['judge_metrics'].apply(lambda x: x.get('accuracy', 0)),
+                df, x="latency_ms", y=acc_series,
                 color="mode", size="latency_ms", hover_name="question"
             )
             st.plotly_chart(fig_scatter, use_container_width=True)

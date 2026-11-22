@@ -128,11 +128,22 @@ def extract_year(
                 fobj = tf.extractfile(member)
                 if fobj is None:
                     log.debug("Skipping non-file tar member: %s", member.name)
+                    failed += 1
                     continue
 
                 pdf_bytes = fobj.read()
                 text = _pdf_bytes_to_text(pdf_bytes)
-                out_path.write_text(text, encoding="utf-8")
+                if len(text.strip()) < 200:
+                    # Scanned/image-only PDF: no text layer and no OCR here. Don't
+                    # write an empty .txt that would later look "already extracted".
+                    log.warning("No usable text layer in %s (scanned PDF?) - skipped", member.name)
+                    failed += 1
+                    continue
+                # Write atomically so an interrupted run never leaves a truncated
+                # file that the `exists()` check above would treat as done.
+                tmp_path = out_path.with_suffix(".txt.tmp")
+                tmp_path.write_text(text, encoding="utf-8")
+                tmp_path.replace(out_path)
 
             except Exception as exc:  # noqa: BLE001
                 log.warning("Failed to extract %s: %s", member.name, exc)

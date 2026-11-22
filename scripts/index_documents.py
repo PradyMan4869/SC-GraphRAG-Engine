@@ -7,9 +7,10 @@ into LightRAG one document at a time.
 indexed.json is updated after every document so progress survives interruption.
 Run again after any crash — already-indexed docs are skipped automatically.
 
-The primary speedup is /no_think in llm_backend.py which disables Qwen3's
-chain-of-thought reasoning (was consuming the entire max_tokens budget,
-leaving nothing for the actual entity extraction output).
+indexed.json is only a progress cache. LightRAG's own doc_status store is the
+source of truth: ainsert() does NOT raise when entity extraction fails (it marks
+the doc "failed" and returns), so a doc is recorded as indexed only after its
+doc_status is "processed". On start-up, stale entries are reconciled away.
 
 Usage:
     python scripts/index_documents.py --years 2024
@@ -32,7 +33,8 @@ if str(PROJECT_ROOT) not in sys.path:
 from tqdm import tqdm
 
 DEFAULT_PROCESSED_DIR = PROJECT_ROOT / "data" / "processed"
-DEFAULT_STORAGE_DIR = PROJECT_ROOT / "storage"
+import os
+DEFAULT_STORAGE_DIR = PROJECT_ROOT / os.getenv("STORAGE_DIR", "storage")
 INDEXED_JSON = DEFAULT_STORAGE_DIR / "indexed.json"
 
 logging.basicConfig(
@@ -55,6 +57,18 @@ def _load_index(path: Path) -> dict[str, str]:
     except (json.JSONDecodeError, OSError) as exc:
         log.warning("Could not read %s (%s) — starting fresh.", path, exc)
         return {}
+
+
+async def _is_processed(rag, doc_id: str) -> bool:
+    """True iff LightRAG finished this doc (not failed / pending / processing)."""
+    status = await rag.doc_status.get_by_id(doc_id)
+    if not status:
+        return False
+    value = status.get("status") if isinstance(status, dict) else getattr(status, "status", None)
+    return str(getattr(value, "value", value)).lower() == "processed"
+
+
+SAVE_EVERY = 25  # indexed.json is rewritten in full; don't do it per document.
 
 
 def _save_index(path: Path, index: dict[str, str]) -> None:
@@ -136,7 +150,19 @@ async def main() -> None:
         log.warning("No .txt files found. Nothing to do.")
         return
 
+    from src.rag.indexer import get_rag  # noqa: PLC0415
+
+    rag = await get_rag()
+
     index = _load_index(INDEXED_JSON)
+    stale = [d for d in index if not await _is_processed(rag, d)]
+    if stale:
+        log.warning("Reconciling: %d entries in indexed.json are not 'processed' in "
+                    "LightRAG doc_status (failed/missing) - they will be retried.", len(stale))
+        for d in stale:
+            del index[d]
+        _save_index(INDEXED_JSON, index)
+
     pending = [(doc_id, path) for doc_id, path in all_files if doc_id not in index]
     skipped = len(all_files) - len(pending)
 
@@ -147,10 +173,6 @@ async def main() -> None:
         log.info("Nothing new to index.")
         _print_summary(0, skipped, 0)
         return
-
-    from src.rag.indexer import get_rag  # noqa: PLC0415
-
-    rag = await get_rag()
 
     inserted = 0
     failed = 0
@@ -165,17 +187,30 @@ async def main() -> None:
                 pbar.update(1)
                 continue
 
+            if len(text.strip()) < 200:
+                log.warning("Skipping %s: empty/near-empty text (scanned PDF?)", doc_id)
+                failed += 1
+                pbar.update(1)
+                continue
+
             try:
                 await rag.ainsert(text, ids=[doc_id])
-                ts = datetime.now(timezone.utc).isoformat()
-                index[doc_id] = ts
-                _save_index(INDEXED_JSON, index)
-                inserted += 1
+                if await _is_processed(rag, doc_id):
+                    index[doc_id] = datetime.now(timezone.utc).isoformat()
+                    inserted += 1
+                    if inserted % SAVE_EVERY == 0:
+                        _save_index(INDEXED_JSON, index)
+                else:
+                    log.error("Doc %s did not reach 'processed' (extraction failed); "
+                              "will be retried on next run.", doc_id)
+                    failed += 1
             except Exception as exc:  # noqa: BLE001
                 log.error("Failed to index %s: %s", doc_id, exc)
                 failed += 1
 
             pbar.update(1)
+
+    _save_index(INDEXED_JSON, index)
 
     _print_summary(inserted, skipped, failed)
 

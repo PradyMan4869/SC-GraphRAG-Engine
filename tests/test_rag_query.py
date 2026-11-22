@@ -108,6 +108,7 @@ _install_src_rag_stubs()
 
 # Now it is safe to import the project modules.
 from src.rag.query import query, VALID_MODES  # noqa: E402
+from tests.conftest import make_llm_result  # noqa: E402
 
 
 # ---------------------------------------------------------------------------
@@ -142,10 +143,20 @@ class TestQueryReturnShape:
             result = _run(query("What is Article 21?"))
         assert "question" in result
 
-    def test_query_result_has_exactly_three_keys(self, mock_rag: MagicMock) -> None:
+    def test_query_result_keys(self, mock_rag: MagicMock) -> None:
         with patch("src.rag.query.get_rag", new=AsyncMock(return_value=mock_rag)):
             result = _run(query("What is Article 21?"))
-        assert set(result.keys()) == {"answer", "mode", "question"}
+        assert set(result.keys()) == {"answer", "mode", "question", "entities", "chunks"}
+
+    def test_query_extracts_chunks_and_entities_from_data_key(self, mock_rag: MagicMock) -> None:
+        """Regression: retrieval output lives under result["data"], not at the top level."""
+        chunks = [{"chunk_id": "chunk-1", "content": "text"}]
+        entities = [{"entity_name": "Article 21"}]
+        mock_rag.aquery_llm = AsyncMock(return_value=make_llm_result("a", chunks, entities))
+        with patch("src.rag.query.get_rag", new=AsyncMock(return_value=mock_rag)):
+            result = _run(query("What is Article 21?"))
+        assert result["chunks"] == chunks
+        assert result["entities"] == entities
 
     def test_query_question_field_echoes_input(self, mock_rag: MagicMock) -> None:
         question = "Define habeas corpus."
@@ -154,7 +165,7 @@ class TestQueryReturnShape:
         assert result["question"] == question
 
     def test_query_answer_field_is_rag_response(self, mock_rag: MagicMock) -> None:
-        mock_rag.aquery = AsyncMock(return_value="Life and liberty are protected.")
+        mock_rag.aquery_llm = AsyncMock(return_value=make_llm_result("Life and liberty are protected."))
         with patch("src.rag.query.get_rag", new=AsyncMock(return_value=mock_rag)):
             result = _run(query("What is Article 21?"))
         assert result["answer"] == "Life and liberty are protected."
@@ -191,13 +202,13 @@ class TestQueryModeValidation:
 
     def test_query_does_not_call_rag_when_mode_invalid(self) -> None:
         rag_mock = MagicMock()
-        rag_mock.aquery = AsyncMock()
+        rag_mock.aquery_llm = AsyncMock()
         with (
             patch("src.rag.query.get_rag", new=AsyncMock(return_value=rag_mock)),
             pytest.raises(ValueError),
         ):
             _run(query("Some question", mode="invalid"))
-        rag_mock.aquery.assert_not_called()
+        rag_mock.aquery_llm.assert_not_called()
 
 
 # ===========================================================================
@@ -241,7 +252,7 @@ class TestQueryDefaultMode:
 
 
 class TestQueryParamForwarding:
-    """query() must pass the correct mode to rag.aquery via QueryParam."""
+    """query() must pass the correct mode to rag.aquery_llm via QueryParam."""
 
     def test_query_passes_mode_to_aquery_param(self, mock_rag: MagicMock) -> None:
         """The QueryParam object forwarded to aquery must carry the requested mode."""
@@ -249,9 +260,9 @@ class TestQueryParamForwarding:
 
         async def capture_aquery(question: str, param=None):
             received_params.append(param)
-            return "stub answer"
+            return make_llm_result("stub answer")
 
-        mock_rag.aquery = capture_aquery
+        mock_rag.aquery_llm = capture_aquery
 
         with patch("src.rag.query.get_rag", new=AsyncMock(return_value=mock_rag)):
             _run(query("What is Article 21?", mode="local"))
@@ -264,9 +275,9 @@ class TestQueryParamForwarding:
 
         async def capture_aquery(question: str, param=None):
             received_params.append(param)
-            return "stub answer"
+            return make_llm_result("stub answer")
 
-        mock_rag.aquery = capture_aquery
+        mock_rag.aquery_llm = capture_aquery
 
         with patch("src.rag.query.get_rag", new=AsyncMock(return_value=mock_rag)):
             _run(query("What is Article 21?"))
@@ -280,9 +291,9 @@ class TestQueryParamForwarding:
 
         async def capture_aquery(question: str, param=None):
             received_questions.append(question)
-            return "stub answer"
+            return make_llm_result("stub answer")
 
-        mock_rag.aquery = capture_aquery
+        mock_rag.aquery_llm = capture_aquery
         question = "Is bail a right?"
 
         with patch("src.rag.query.get_rag", new=AsyncMock(return_value=mock_rag)):
@@ -311,5 +322,15 @@ class TestValidModes:
     def test_valid_modes_contains_naive(self) -> None:
         assert "naive" in VALID_MODES
 
-    def test_valid_modes_has_exactly_four_entries(self) -> None:
-        assert len(VALID_MODES) == 4
+    def test_valid_modes_has_exactly_five_entries(self) -> None:
+        assert len(VALID_MODES) == 5 and "mix" in VALID_MODES
+
+
+class TestEmptyAnswerSurfacesAsError:
+    """Regression: a swallowed LLM error (e.g. context overflow) used to come back as an empty 'answer'."""
+
+    def test_empty_llm_response_raises(self, mock_rag: MagicMock) -> None:
+        mock_rag.aquery_llm = AsyncMock(return_value=make_llm_result(""))
+        with patch("src.rag.query.get_rag", new=AsyncMock(return_value=mock_rag)):
+            with pytest.raises(RuntimeError, match="Empty answer"):
+                _run(query("What is Article 21?"))

@@ -175,8 +175,20 @@ def sample_judgment_text() -> str:
 def mock_rag() -> MagicMock:
     """Return a MagicMock that mimics the return value of get_rag().
 
-    ``aquery`` is an AsyncMock so it can be awaited in async test code.
+    query() calls ``aquery_llm`` (LightRAG's structured API): retrieval output is
+    nested under "data" and the answer under "llm_response" -> "content".
     """
     rag = MagicMock()
-    rag.aquery = AsyncMock(return_value="The fundamental right to life is protected.")
+    rag.aquery_llm = AsyncMock(return_value=make_llm_result("The fundamental right to life is protected."))
     return rag
+
+
+def make_llm_result(answer: str, chunks=None, entities=None) -> dict:
+    """Build a dict shaped like LightRAG 1.4's aquery_llm() return value."""
+    return {
+        "status": "success",
+        "message": "ok",
+        "data": {"entities": entities or [], "relationships": [], "chunks": chunks or [], "references": []},
+        "metadata": {},
+        "llm_response": {"content": answer, "is_streaming": False, "response_iterator": None},
+    }

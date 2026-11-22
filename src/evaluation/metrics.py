@@ -1,6 +1,12 @@
 """
-Core metrics for Supreme Court GraphRAG evaluation.
-Includes: ROUGE-L, BLEU, Context Signal-to-Noise, and LLM-as-a-Judge.
+Generation-quality metrics: ROUGE-L, BLEU and LLM-as-a-Judge.
+
+Retrieval metrics live in src/evaluation/retrieval_eval.py.
+
+Caveats: the judge is the same local model that generated the answers and the
+gold answers (self-preference bias), ROUGE/BLEU against a 1-2 sentence gold
+answer mostly measure verbosity, and sentence-level BLEU on long answers is
+nearly meaningless. Treat these as sanity checks, not headline numbers.
 """
 import json
 from rouge_score import rouge_scorer
@@ -11,6 +17,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 LM_STUDIO_URL = os.getenv("LM_STUDIO_BASE_URL", "http://localhost:1234/v1")
+JUDGE_MODEL = os.getenv("JUDGE_MODEL") or os.getenv("LM_STUDIO_MODEL", "default")
 client = AsyncOpenAI(base_url=LM_STUDIO_URL, api_key="lm-studio")
 
 def calculate_text_metrics(prediction: str | list, reference: str | list) -> dict:
@@ -54,8 +61,10 @@ async def llm_judge(question: str, prediction: str, reference: str) -> dict:
     """
     try:
         response = await client.chat.completions.create(
-            model="default",
-            messages=[{"role": "user", "content": prompt}]
+            model=JUDGE_MODEL,
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.0,
+            max_tokens=400,
         )
         content = response.choices[0].message.content
         if "```json" in content:
@@ -64,46 +73,11 @@ async def llm_judge(question: str, prediction: str, reference: str) -> dict:
             content = content.split("```")[1].split("```")[0].strip()
             
         scores = json.loads(content)
+        for k in ("accuracy", "reasoning", "completeness"):
+            scores[k] = float(scores[k])
         return scores
     except Exception as e:
+        # A failed judgement is *missing data*, not a score of zero: returning 0
+        # would silently drag the mean down. Callers must skip `None` scores.
         print(f"Judge error: {e}")
-        return {"accuracy": 0, "reasoning": 0, "completeness": 0, "feedback": str(e)}
-
-def calculate_graph_metrics(retrieved_entities: list, relevant_entities: list) -> dict:
-    """
-    Comprehensive Retrieval Metrics: Recall, Precision, F1, and MRR.
-    """
-    if not relevant_entities:
-        return {
-            "recall": 1.0, "precision": 1.0, "f1": 1.0, "mrr": 1.0,
-            "snr_db": 20.0 # Perfect signal
-        }
-    
-    retrieved_set = set(retrieved_entities)
-    relevant_set = set(relevant_entities)
-    
-    hits = retrieved_set.intersection(relevant_set)
-    recall = len(hits) / len(relevant_set)
-    precision = len(hits) / len(retrieved_set) if retrieved_set else 0.0
-    f1 = 2 * (precision * recall) / (precision + recall) if (precision + recall) > 0 else 0.0
-    
-    # Simple MRR based on first hit in retrieved list
-    mrr = 0.0
-    for i, entity in enumerate(retrieved_entities, 1):
-        if entity in relevant_set:
-            mrr = 1.0 / i
-            break
-
-    # Context Signal-to-Noise Ratio (SNR)
-    # Ratio of relevant entities to total entities in context
-    snr = len(hits) / (len(retrieved_set) - len(hits) + 1) # +1 to avoid div by zero
-    import math
-    snr_db = 10 * math.log10(snr) if snr > 0 else -20.0
-
-    return {
-        "entity_recall": round(recall, 4),
-        "entity_precision": round(precision, 4),
-        "f1_score": round(f1, 4),
-        "mrr": round(mrr, 4),
-        "snr_db": round(snr_db, 2)
-    }
+        return {"accuracy": None, "reasoning": None, "completeness": None, "feedback": str(e)}
