@@ -1,6 +1,6 @@
 # GraphRAG — Indian Supreme Court Judgments
 
-A fully local GraphRAG pipeline for Indian Supreme Court judgments (the public corpus has ~35,000 judgments, 1950–2025), built as a portfolio project demonstrating graph-augmented retrieval for legal research. **Currently indexed: a few hundred 2024 judgments** (see `storage/kv_store_doc_status.json`); the full corpus is not indexed, and the in-memory NetworkX / nano-vector-db storage would need replacing (e.g. Neo4j + a real vector DB) to reach that scale.
+A fully local GraphRAG pipeline for Indian Supreme Court judgments (the public corpus has ~35,000 judgments, 1950–2025), built as a portfolio project demonstrating graph-augmented retrieval for legal research. **Currently indexed: 630 judgments (9 failed)**, as recorded in `reports/system_stats.json` (the `storage/` index itself is gitignored and not in this repo); the full corpus is not indexed, and the in-memory NetworkX / nano-vector-db storage would need replacing (e.g. Neo4j + a real vector DB) to reach that scale.
 
 ---
 
